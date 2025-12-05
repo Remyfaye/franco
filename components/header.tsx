@@ -4,8 +4,11 @@ import { Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Header() {
+  const { user } = useAuth();
+  console.log("user", user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
 
@@ -28,12 +31,20 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between gap-4 mb-4">
             {/* Logo - Links to Home */}
-            <Link
-              href="/"
-              className="text-2xl font-bold tracking-wider hover:text-gray-600"
-            >
-              Franco
-            </Link>
+            <div className="flex items-center">
+              <img
+                src="/franco_logo.jpeg"
+                className="w-[40px] h-[40px]"
+                alt="logo"
+              />
+
+              <Link
+                href="/"
+                className="text-2xl font-bold tracking-wider hover:text-gray-600"
+              >
+                Franco
+              </Link>
+            </div>
 
             {/* Search Bar */}
             <div className="hidden md:flex flex-1 max-w-md">
@@ -49,18 +60,46 @@ export function Header() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
-              <Link
-                href="/signup"
-                className="text-sm font-medium hover:text-gray-600 transition"
-              >
-                Join us
-              </Link>
-              <Link
-                href="/login"
-                className="text-sm font-medium hover:text-gray-600 transition"
-              >
-                Sign in
-              </Link>
+              {!user && (
+                <>
+                  <Link
+                    href="/signup"
+                    className="text-sm font-medium hover:text-gray-600 transition"
+                  >
+                    Join us
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium hover:text-gray-600 transition"
+                  >
+                    Sign in
+                  </Link>
+                </>
+              )}
+
+              {user?.roles.includes("admin") && (
+                <>
+                  <Link
+                    href="/admin"
+                    className="text-sm font-medium hover:text-gray-600 transition"
+                  >
+                    Dashboard
+                  </Link>
+                </>
+              )}
+
+              {user?.roles.includes("user") &&
+                !user?.roles.includes("admin") && (
+                  <>
+                    <Link
+                      href="/admin"
+                      className="text-sm font-medium hover:text-gray-600 transition"
+                    >
+                      Welcome {user.name}
+                    </Link>
+                  </>
+                )}
+
               <Link
                 href="/cart"
                 className="cursor-pointer hover:text-gray-600 transition"

@@ -1,22 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
+import { useState } from "react";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const { login, isLoading } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const formData = { email, password };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 1000)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("🔄 Login form submitted");
+
+    const result = await login(formData);
+  };
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -27,7 +30,9 @@ export default function LoginPage() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to your account to continue shopping</p>
+            <p className="text-gray-600">
+              Sign in to your account to continue shopping
+            </p>
           </div>
 
           {/* Login Form */}
@@ -50,7 +55,10 @@ export default function LoginPage() {
 
             {/* Password Input */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -67,6 +75,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -75,7 +84,10 @@ export default function LoginPage() {
 
             {/* Forgot Password */}
             <div className="text-right">
-              <Link href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+              <Link
+                href="#"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -97,20 +109,13 @@ export default function LoginPage() {
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
 
-          {/* Social Login */}
-          <div className="space-y-3 mb-8">
-            <button className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2">
-              <span>🔵</span> Sign in with Google
-            </button>
-            <button className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2">
-              <span>🔵</span> Sign in with Apple
-            </button>
-          </div>
-
           {/* Sign Up Link */}
           <div className="text-center">
             <span className="text-gray-600">Don't have an account? </span>
-            <Link href="/signup" className="font-medium text-black hover:underline">
+            <Link
+              href="/signup"
+              className="font-medium text-black hover:underline"
+            >
               Create one
             </Link>
           </div>
@@ -119,5 +124,5 @@ export default function LoginPage() {
 
       <Footer />
     </main>
-  )
+  );
 }

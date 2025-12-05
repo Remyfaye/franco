@@ -1,36 +1,61 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Eye, EyeOff, Check } from "lucide-react"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
+import { useState } from "react";
+import Link from "next/link";
+import { Eye, EyeOff, Check } from "lucide-react";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
+import { handlePost } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    phone: 0,
     password: "",
     confirmPassword: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [agreeTerms, setAgreeTerms] = useState(false)
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 1000)
-  }
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  const passwordsMatch = formData.password === formData.confirmPassword && formData.password.length >= 8
+    const response = await handlePost("auth/register", formData);
+    console.log("response", response);
+
+    if (!response.ok) {
+      toast({
+        title: " Someting sent wrong",
+        description: `Please try again`,
+        duration: 2000,
+      });
+      setIsLoading(false);
+    }
+    const data = await response.json();
+    console.log(data);
+    if (data.token) {
+      localStorage.setItem("auth-token", data.token);
+    }
+    setIsLoading(false);
+    router.push("/");
+  };
+
+  const passwordsMatch =
+    formData.password === formData.confirmPassword &&
+    formData.password.length >= 8;
 
   return (
     <main className="min-h-screen bg-white flex flex-col">
@@ -49,7 +74,10 @@ export default function SignupPage() {
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium mb-2"
+                >
                   First Name
                 </label>
                 <input
@@ -64,7 +92,10 @@ export default function SignupPage() {
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium mb-2">
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium mb-2"
+                >
                   Last Name
                 </label>
                 <input
@@ -99,7 +130,10 @@ export default function SignupPage() {
 
             {/* Password Input */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium mb-2"
+              >
                 Password
               </label>
               <div className="relative">
@@ -125,7 +159,10 @@ export default function SignupPage() {
 
             {/* Confirm Password Input */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium mb-2"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -150,28 +187,69 @@ export default function SignupPage() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
                 </button>
                 {formData.confirmPassword && passwordsMatch && (
-                  <Check size={18} className="absolute right-12 top-1/2 -translate-y-1/2 text-green-500" />
+                  <Check
+                    size={18}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 text-green-500"
+                  />
                 )}
               </div>
             </div>
 
             {/* Password Requirements */}
             <div className="bg-blue-50 p-4 rounded-lg text-sm space-y-2">
-              <p className="font-medium text-gray-900">Password Requirements:</p>
+              <p className="font-medium text-gray-900">
+                Password Requirements:
+              </p>
               <ul className="space-y-1 text-gray-700">
-                <li className={formData.password.length >= 8 ? "text-green-600" : ""}>
-                  {formData.password.length >= 8 ? "✓" : "•"} At least 8 characters
+                <li
+                  className={
+                    formData.password.length >= 8 ? "text-green-600" : ""
+                  }
+                >
+                  {formData.password.length >= 8 ? "✓" : "•"} At least 8
+                  characters
                 </li>
-                <li className={/[A-Z]/.test(formData.password) ? "text-green-600" : ""}>
-                  {/[A-Z]/.test(formData.password) ? "✓" : "•"} One uppercase letter
+                <li
+                  className={
+                    /[A-Z]/.test(formData.password) ? "text-green-600" : ""
+                  }
+                >
+                  {/[A-Z]/.test(formData.password) ? "✓" : "•"} One uppercase
+                  letter
                 </li>
-                <li className={/[0-9]/.test(formData.password) ? "text-green-600" : ""}>
+                <li
+                  className={
+                    /[0-9]/.test(formData.password) ? "text-green-600" : ""
+                  }
+                >
                   {/[0-9]/.test(formData.password) ? "✓" : "•"} One number
                 </li>
               </ul>
+            </div>
+
+            {/* Phone Number Input */}
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium mb-2">
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="0801 234 5678"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-black transition"
+                required
+                pattern="^[0-9]{10,15}$"
+              />
             </div>
 
             {/* Terms & Conditions */}
@@ -184,13 +262,22 @@ export default function SignupPage() {
                 className="mt-1 w-4 h-4 rounded border-gray-300 cursor-pointer"
                 required
               />
-              <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
+              <label
+                htmlFor="terms"
+                className="text-sm text-gray-600 cursor-pointer"
+              >
                 I agree to the{" "}
-                <Link href="#" className="font-medium text-black hover:underline">
+                <Link
+                  href="#"
+                  className="font-medium text-black hover:underline"
+                >
                   Terms & Conditions
                 </Link>{" "}
                 and{" "}
-                <Link href="#" className="font-medium text-black hover:underline">
+                <Link
+                  href="#"
+                  className="font-medium text-black hover:underline"
+                >
                   Privacy Policy
                 </Link>
               </label>
@@ -214,19 +301,14 @@ export default function SignupPage() {
           </div>
 
           {/* Social Signup */}
-          <div className="space-y-3 mb-8">
-            <button className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2">
-              <span>🔵</span> Sign up with Google
-            </button>
-            <button className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2">
-              <span>🔵</span> Sign up with Apple
-            </button>
-          </div>
 
           {/* Login Link */}
           <div className="text-center">
             <span className="text-gray-600">Already have an account? </span>
-            <Link href="/login" className="font-medium text-black hover:underline">
+            <Link
+              href="/login"
+              className="font-medium text-black hover:underline"
+            >
               Sign in
             </Link>
           </div>
@@ -235,5 +317,5 @@ export default function SignupPage() {
 
       <Footer />
     </main>
-  )
+  );
 }

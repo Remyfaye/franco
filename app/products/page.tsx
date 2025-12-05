@@ -4,6 +4,11 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { useProducts } from "@/hooks/useProducts";
+import { ShoppingBag } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
+import { useToast } from "@/components/ui/use-toast";
+import AddToCart from "@/components/ui/addToCart-button";
 
 // Mock product data - would come from backend
 const PRODUCTS = [
@@ -57,15 +62,17 @@ const PRODUCTS = [
   },
 ];
 
-const CATEGORIES = ["all", "smartphone", "laptop"];
-
 export default function ProductsPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const { categories, products, productsLoading } = useProducts();
+
+  const CATEGORIES = [{ name: "All", id: "1" }, ...categories];
+  const [selectedCategory, setSelectedCategory] = useState("1");
+  console.log("CATEGORIES", CATEGORIES);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredProducts = PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesCategory =
-      selectedCategory === "all" || product.category === selectedCategory;
+      selectedCategory === "1" || product.category.id === selectedCategory;
     const matchesSearch = product.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -93,19 +100,26 @@ export default function ProductsPage() {
             <div className="flex flex-wrap gap-3">
               {CATEGORIES.map((category) => (
                 <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                    selectedCategory === category
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`capitalize px-6 py-2 rounded-lg font-medium transition-colors ${
+                    selectedCategory === category.id
                       ? "bg-black text-white"
                       : "bg-gray-100 text-black hover:bg-gray-200"
                   }`}
                 >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                  {category.name}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Loading State */}
+          {productsLoading && (
+            <div className="flex justify-center items-center py-20 w-full">
+              <div className="w-10 h-10 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+            </div>
+          )}
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,10 +127,11 @@ export default function ProductsPage() {
               <div key={product.id} className="group cursor-pointer">
                 <div className="relative overflow-hidden rounded-lg bg-gray-100 mb-4">
                   <img
-                    src={product.image || "/placeholder.svg"}
+                    src={product.imageUrls[0] || "/placeholder.svg"}
                     alt={product.name}
                     className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
+                  <AddToCart product={product} />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
                 <div className="flex items-center justify-between">
@@ -125,9 +140,6 @@ export default function ProductsPage() {
                   </p>
                   <div className="flex items-center gap-1">
                     <span className="text-yellow-500">★</span>
-                    <span className="text-sm font-medium">
-                      {product.rating}
-                    </span>
                   </div>
                 </div>
               </div>

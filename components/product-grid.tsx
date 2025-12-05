@@ -1,8 +1,13 @@
+import { useCart } from "@/hooks/useCart";
+import { useProducts } from "@/hooks/useProducts";
 import { Star, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import AddToCart from "./ui/addToCart-button";
 
 export default function ProductGrid() {
-  const products = [
+  const { products } = useProducts();
+
+  const productss = [
     {
       id: 1,
       name: "ProBook Ultra 16 - Intel i9",
@@ -28,21 +33,23 @@ export default function ProductGrid() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {products.map((product) => (
+      {products.slice(0, 3).map((product) => (
         <Link key={product.id} href={`/products/${product.id}`}>
           <div className="group cursor-pointer">
-            <div className="relative bg-gray-100 rounded-lg overflow-hidden mb-4 aspect-square">
+            <div className="relative rounded-lg overflow-hidden mb-4 aspect-square bg-neutral-100">
               <div
                 className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
-                style={{ backgroundImage: `url('${product.image}')` }}
+                style={{
+                  backgroundImage: `url('${product.imageUrls[0]}')`,
+                  backgroundColor: "#f1f1f1", // fallback for white images
+                  mixBlendMode: "multiply", // helps white/bright images blend properly
+                }}
               />
-              <button className="absolute top-3 right-3 bg-white rounded-full p-2 hover:bg-gray-200 transition opacity-0 group-hover:opacity-100 transition-opacity">
-                <ShoppingBag size={18} />
-              </button>
+              <AddToCart product={product} />
             </div>
 
             <div className="flex gap-1 mb-2">
-              {[...Array(product.rating)].map((_, i) => (
+              {productss.map((_, i) => (
                 <Star
                   key={i}
                   size={14}

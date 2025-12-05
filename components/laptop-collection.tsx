@@ -2,9 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function LaptopCollection() {
   const [activeImage, setActiveImage] = useState(0);
+  const { products, categoriesLoading, categories } = useProducts();
+
+  const catogory = categories?.map((c) => c.name);
+  const chosenCat = catogory[0];
+
+  const productsInThatCategory = products?.filter(
+    (product) => product.category.name === chosenCat
+  );
+  const imageUrls = productsInThatCategory?.map(
+    (product) => product.imageUrls[0]
+  );
 
   const images = [
     "/electronics-laptop-pro.jpg",
@@ -19,7 +31,7 @@ export default function LaptopCollection() {
           {/* Left side - Content */}
           <div className="flex flex-col justify-center order-2 md:order-1">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-pretty">
-              Explore Our Laptop Collection
+              Explore Our {chosenCat} Collection
             </h2>
             <p className="text-gray-600 mb-6 text-lg">
               Express your creativity with our premium selection. From everyday
@@ -35,7 +47,7 @@ export default function LaptopCollection() {
           {/* Right side - Changing images */}
           <div className="flex flex-col items-center order-1 md:order-2">
             <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden mb-6">
-              {images.map((image, index) => (
+              {imageUrls.map((image, index) => (
                 <div
                   key={index}
                   className={`absolute inset-0 transition-opacity duration-500 ${

@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { useState, useEffect } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function HeroCarousel() {
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const slides = [
     {
@@ -25,15 +25,15 @@ export default function HeroCarousel() {
       image: "/electronics-audio-hero.jpg",
       title: "Premium Audio",
     },
-  ]
+  ];
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
 
   return (
     <div className="relative bg-amber-900 h-96 md:h-[500px] overflow-hidden">
@@ -68,11 +68,13 @@ export default function HeroCarousel() {
             key={index}
             onClick={() => setCurrentSlide(index)}
             className={`transition-all duration-300 h-3 rounded-full ${
-              index === currentSlide ? "bg-white w-8 scale-110" : "bg-white/50 w-3 hover:bg-white/70"
+              index === currentSlide
+                ? "bg-white w-8 scale-110"
+                : "bg-white/50 w-3 hover:bg-white/70"
             }`}
           />
         ))}
       </div>
     </div>
-  )
+  );
 }
