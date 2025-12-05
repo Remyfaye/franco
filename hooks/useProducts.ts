@@ -2,6 +2,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "./use-toast";
+import { handleDelete, handlePost, handlePut } from "@/lib/utils";
 
 export function useProducts() {
   const [isLoading, setIsLoading] = useState(false);
@@ -111,8 +112,9 @@ export function useProducts() {
         console.log("create category response", response);
         toast({
           title: "Failed",
-          description: "ing went wrongSometh",
+          description: "something went wrongSometh",
         });
+        return null;
       }
 
       const res: AuthResponse = await response.json();
@@ -121,6 +123,7 @@ export function useProducts() {
         title: "Successfull",
         description: "Category has been created",
       });
+      console.log(`${BASE_URL}/admin/categories`);
       window.location.reload();
     } catch (error) {
       toast({
@@ -199,11 +202,7 @@ export function useProducts() {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/admin/categories?id=${id}`, {
-        // Assuming the API path is /api/admin/categories
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await handleDelete(`admin/categories?id=${id}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -220,12 +219,7 @@ export function useProducts() {
 
   const editCategory = async (id: string, data: { name: string }) => {
     try {
-      const response = await fetch(`${BASE_URL}/admin/categories?id=${id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const response = await handlePut(`admin/categories?id=${id}`, data);
 
       if (!response.ok) {
         const errorData = await response.json();

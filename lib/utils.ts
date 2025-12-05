@@ -45,6 +45,25 @@ export async function handlePost(url: string, formData: any) {
   return response;
 }
 
+export async function handleDelete(url: string) {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  const localStorageToken = localStorage.getItem("auth-token");
+  if (localStorageToken) {
+    headers["Authorization"] = `Bearer ${localStorageToken}`;
+  }
+
+  const response = await fetch(`${BASE_URL}/${url}`, {
+    method: "DELETE",
+    headers,
+    credentials: "include",
+  });
+
+  return response;
+}
+
 export async function handlePut(url: string, formData: any) {
   const headers: HeadersInit = {
     "Content-Type": "application/json",

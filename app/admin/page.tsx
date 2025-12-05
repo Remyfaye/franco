@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import Link from "next/link";
-import { handleGet, handlePut } from "@/lib/utils";
+import { handleGet, handlePost, handlePut } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
