@@ -155,8 +155,8 @@ export function useAuth() {
 
       const res = await response.json();
 
-      if (res.token) {
-        localStorage.setItem("auth-token", res.token);
+      if (res.data.token) {
+        localStorage.setItem("auth-token", res.data.token);
       }
 
       if (res.status === 200) {
