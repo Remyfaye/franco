@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import Link from "next/link";
-import { handleGet, handlePost, handlePut } from "@/lib/utils";
+import { handleDelete, handleGet, handlePost, handlePut } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -202,6 +203,7 @@ function ProductsTab() {
   const [isEditing, setIsEditing] = useState(false);
 
   const { categories, products, productsLoading } = useProducts();
+  const { user, userLoading } = useAuth();
 
   // Handle image selection for add form
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,6 +255,14 @@ function ProductsTab() {
     }
   };
 
+  if (!userLoading && !user?.roles?.includes("admin")) {
+    return (
+      <div>
+        <h1>You are not an admin. You cannot access this page.</h1>
+      </div>
+    );
+  }
+
   // Clean up preview URLs
   useEffect(() => {
     return () => {
@@ -272,11 +282,7 @@ function ProductsTab() {
     });
 
     try {
-      const response = await fetch(`${BASE_URL}/admin/products`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+      const response = await handlePost("admin/products", formData);
 
       if (!response.ok) {
         throw new Error("Failed to create product");
@@ -314,13 +320,9 @@ function ProductsTab() {
     });
 
     try {
-      const response = await fetch(
-        `${BASE_URL}/admin/products/${editingProduct.id}`,
-        {
-          method: "PUT",
-          body: formData,
-          credentials: "include",
-        }
+      const response = await handlePut(
+        `admin/products/${editingProduct.id}`,
+        formData
       );
 
       if (!response.ok) {
@@ -356,7 +358,7 @@ function ProductsTab() {
   };
 
   // Handle product deletion
-  const handleDelete = async (id: string) => {
+  const handleProductDelete = async (id: string) => {
     if (
       !confirm(
         "Are you sure you want to delete this product? This action cannot be undone."
@@ -366,10 +368,7 @@ function ProductsTab() {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/admin/products?id=${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const response = await handleDelete(`admin/products?id=${id}`);
 
       if (!response.ok) {
         throw new Error("Failed to delete product");
@@ -885,7 +884,7 @@ function ProductsTab() {
                           <span>Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleProductDelete(item.id)}
                           className="flex items-center space-x-1 text-red-600 text-sm"
                         >
                           <Trash2 size={16} />
