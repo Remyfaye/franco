@@ -104,3 +104,23 @@ export async function handleUploadPut(url: string, formData: FormData) {
 
   return response;
 }
+
+export async function handleUploadPost(url: string, formData: FormData) {
+  const headers: HeadersInit = {
+    // Don't set Content-Type for FormData - let browser set it
+  };
+
+  const localStorageToken = localStorage.getItem("auth-token");
+  if (localStorageToken) {
+    headers["Authorization"] = `Bearer ${localStorageToken}`;
+  }
+
+  const response = await fetch(`${BASE_URL}/${url}`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: formData,
+  });
+
+  return response;
+}

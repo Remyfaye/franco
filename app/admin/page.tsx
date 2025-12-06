@@ -25,6 +25,7 @@ import {
   handleGet,
   handlePost,
   handlePut,
+  handleUploadPost,
   handleUploadPut,
 } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -297,7 +298,7 @@ function ProductsTab() {
     });
 
     try {
-      const response = await handlePost("admin/products", formData);
+      const response = await handleUploadPost("admin/products", formData);
 
       if (!response.ok) {
         throw new Error("Failed to create product");
