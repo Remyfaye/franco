@@ -193,7 +193,9 @@ __turbopack_context__.s([
     "handlePost",
     ()=>handlePost,
     "handlePut",
-    ()=>handlePut
+    ()=>handlePut,
+    "handleUploadPut",
+    ()=>handleUploadPut
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$clsx$2f$dist$2f$clsx$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/clsx/dist/clsx.mjs [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$tailwind$2d$merge$2f$dist$2f$bundle$2d$mjs$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/tailwind-merge/dist/bundle-mjs.mjs [app-ssr] (ecmascript)");
@@ -262,6 +264,21 @@ async function handlePut(url, formData) {
         headers,
         credentials: "include",
         body: JSON.stringify(formData)
+    });
+    return response;
+}
+async function handleUploadPut(url, formData) {
+    const headers = {
+    };
+    const localStorageToken = localStorage.getItem("auth-token");
+    if (localStorageToken) {
+        headers["Authorization"] = `Bearer ${localStorageToken}`;
+    }
+    const response = await fetch(`${BASE_URL}/${url}`, {
+        method: "PUT",
+        headers,
+        credentials: "include",
+        body: formData
     });
     return response;
 }

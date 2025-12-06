@@ -12,17 +12,32 @@ import {
   Eye,
   Upload,
   ShoppingBag,
+  Store,
+  ChevronDown,
+  Package,
+  User,
+  Truck,
 } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import Link from "next/link";
-import { handleDelete, handleGet, handlePost, handlePut } from "@/lib/utils";
+import {
+  handleDelete,
+  handleGet,
+  handlePost,
+  handlePut,
+  handleUploadPut,
+} from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { categories, products } = useProducts();
+  const { user, userLoading } = useAuth();
   console.log("products:", products);
+  if (!userLoading && !user?.roles.includes("admin")) {
+    return <h1>This page can only be accessed by admin</h1>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -320,7 +335,7 @@ function ProductsTab() {
     });
 
     try {
-      const response = await handlePut(
+      const response = await handleUploadPut(
         `admin/products/${editingProduct.id}`,
         formData
       );
@@ -1159,6 +1174,7 @@ function OrdersTab() {
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>("ALL");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchOrders();
@@ -1166,6 +1182,7 @@ function OrdersTab() {
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
       const response = await handleGet("admin/orders");
       const data = await response.json();
 
@@ -1177,6 +1194,8 @@ function OrdersTab() {
       setOrders(sorted);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -1194,179 +1213,394 @@ function OrdersTab() {
       ? orders
       : orders.filter((o) => o.deliveryStatus === filter);
 
+  console.log("filteredOrders", filteredOrders);
+
   return (
-    <div>
-      <h2 className="text-3xl font-bold mb-8">Orders Management</h2>
+    <div className="p-4 lg:p-6">
+      <h2 className="text-2xl lg:text-3xl font-bold mb-6 lg:mb-8">
+        Orders Management
+      </h2>
 
       {/* FILTER */}
-      <div className="mb-4 flex gap-3 items-center">
-        <span className="font-medium text-sm">Filter:</span>
-
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border px-3 py-2 rounded"
-        >
-          <option value="ALL">All</option>
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+        <span className="font-medium text-sm">Filter by status:</span>
+        <div className="relative w-full sm:w-auto">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full sm:w-auto border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white pr-10"
+          >
+            <option value="ALL">All Orders</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <ChevronDown className="w-4 h-4 text-gray-400" />
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 border-b">
-            <tr>
-              <th className="text-left py-4 px-6">Order ID</th>
-              <th className="text-left py-4 px-6">Customer</th>
-              <th className="text-left py-4 px-6">Amount</th>
-              <th className="text-left py-4 px-6">Status</th>
-              <th className="text-center py-4 px-6">Order Info</th>
-            </tr>
-          </thead>
+      {/* LOADING STATE */}
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        <>
+          {/* DESKTOP TABLE (hidden on mobile) */}
+          <div className="hidden lg:block bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left py-4 px-6 font-medium text-gray-700">
+                      Order ID
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-700">
+                      Customer
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-700">
+                      Amount
+                    </th>
+                    <th className="text-left py-4 px-6 font-medium text-gray-700">
+                      Status
+                    </th>
+                    <th className="text-center py-4 px-6 font-medium text-gray-700">
+                      Details
+                    </th>
+                  </tr>
+                </thead>
 
-          <tbody>
+                <tbody>
+                  {filteredOrders.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="border-b hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="py-4 px-6 font-medium text-gray-900">
+                        #{item.id.slice(0, 8)}
+                      </td>
+                      <td className="py-4 px-6 capitalize">
+                        {item.user.firstName?.split(" ")[0]}{" "}
+                        {item.user.lastName?.split(" ")[0]}
+                      </td>
+                      <td className="py-4 px-6 font-semibold text-gray-800">
+                        ₦{item.totalAmount.toLocaleString()}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="relative inline-block">
+                          <select
+                            value={item.deliveryStatus}
+                            onChange={(e) =>
+                              updateStatus(item.id, e.target.value)
+                            }
+                            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white pr-8"
+                          >
+                            {STATUS_OPTIONS.map((s) => (
+                              <option key={s} value={s}>
+                                {s}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                            <ChevronDown className="w-3 h-3 text-gray-400" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <button
+                          onClick={() => setSelectedOrder(item)}
+                          className="inline-flex items-center justify-center px-4 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium text-sm transition-colors"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {filteredOrders.length === 0 && (
+                    <tr>
+                      <td
+                        className="py-8 px-6 text-center text-gray-500"
+                        colSpan={5}
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <Package className="w-12 h-12 text-gray-300 mb-2" />
+                          <p className="text-base">No orders found</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Try selecting a different filter
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* MOBILE CARD VIEW (visible on mobile) */}
+          <div className="lg:hidden space-y-4">
             {filteredOrders.map((item) => (
-              <tr
+              <div
                 key={item.id}
-                className="border-b hover:bg-gray-50 transition"
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4"
               >
-                {/* ID */}
-                <td className="py-4 px-6 font-medium">
-                  #{item.id.slice(0, 6)}
-                </td>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      #{item.id.slice(0, 8)}
+                    </p>
+                    <p className="text-sm text-gray-600 capitalize mt-1">
+                      {item.user.firstName}
+                    </p>
+                  </div>
+                  <span className="font-bold text-gray-900">
+                    ₦{item.totalAmount.toLocaleString()}
+                  </span>
+                </div>
 
-                {/* Customer */}
-                <td className="py-4 px-6 capitalize">{item.user.name}</td>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      Status
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={item.deliveryStatus}
+                        onChange={(e) => updateStatus(item.id, e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white pr-8"
+                      >
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <ChevronDown className="w-3 h-3 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
 
-                {/* Amount */}
-                <td className="py-4 px-6 font-semibold text-gray-800">
-                  ₦{item.totalAmount.toLocaleString()}
-                </td>
-
-                {/* STATUS DROPDOWN */}
-                <td className="py-4 px-6">
-                  <select
-                    value={item.deliveryStatus}
-                    onChange={(e) => updateStatus(item.id, e.target.value)}
-                    className="border px-2 py-1 rounded text-sm"
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-
-                {/* VIEW BUTTON */}
-                <td className="py-4 px-6 text-center">
                   <button
                     onClick={() => setSelectedOrder(item)}
-                    className="text-blue-600 hover:underline font-medium"
+                    className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium text-sm transition-colors"
                   >
-                    View
+                    View Order Details
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
 
-            {filteredOrders.length === 0 && (
-              <tr>
-                <td className="py-6 px-6 text-center text-gray-500" colSpan={5}>
-                  No orders found.
-                </td>
-              </tr>
+            {filteredOrders.length === 0 && !loading && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+                <div className="flex flex-col items-center justify-center">
+                  <Package className="w-16 h-16 text-gray-300 mb-3" />
+                  <p className="text-lg font-medium text-gray-700">
+                    No orders found
+                  </p>
+                  <p className="text-gray-500 mt-1">
+                    Try selecting a different filter
+                  </p>
+                </div>
+              </div>
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </>
+      )}
 
-      {/* ----------------------- MODAL ------------------------ */}
+      {/* ----------------------- ORDER DETAILS MODAL ------------------------ */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg overflow-hidden animate-fadeIn">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-xl font-bold">
-                Order Details – #{selectedOrder.id.slice(0, 8)}
-              </h3>
-              <button onClick={() => setSelectedOrder(null)}>
-                <X className="w-5 h-5 text-gray-700 hover:text-black" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 lg:p-6 overflow-y-auto">
+          <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden my-auto animate-fadeIn max-h-[90vh] flex flex-col">
+            {/* MODAL HEADER */}
+            <div className="flex justify-between items-center p-4 lg:p-6 border-b bg-gray-50 sticky top-0 z-10">
+              <div>
+                <h3 className="text-lg lg:text-xl font-bold text-gray-900">
+                  Order Details
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  #{selectedOrder.id.slice(0, 8)}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
-            <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div>
-                <h4 className="font-semibold mb-1">Customer</h4>
-                <p className="capitalize text-sm">
-                  Name: {selectedOrder.user.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Email: {selectedOrder.user.email}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Phone: {selectedOrder.user.phone}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-1">Order Type</h4>
-                <p className="text-sm">
-                  {selectedOrder.deliveryType === "pickup"
-                    ? "Pickup at store"
-                    : "Home Delivery"}
-                </p>
-              </div>
-
-              {selectedOrder.deliveryType === "delivery" && (
-                <div>
-                  <h4 className="font-semibold mb-1">Delivery Address</h4>
-                  <p className="text-sm">{selectedOrder.address}</p>
-                </div>
-              )}
-
-              <div>
-                <h4 className="font-semibold mb-2">Items</h4>
-                <div className="space-y-2">
-                  {selectedOrder.items.map((item: any) => (
-                    <div
-                      key={item.id}
-                      className="bg-gray-50 p-2 rounded flex justify-between"
-                    >
-                      <div>
-                        <p className="font-medium text-sm capitalize">
-                          {item.product.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Qty: {item.quantity}
-                        </p>
-                      </div>
-                      <p className="font-semibold text-sm">
-                        ₦{(item.unitPrice * item.quantity).toLocaleString()}
+            {/* MODAL CONTENT - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+              <div className="space-y-6">
+                {/* CUSTOMER INFO */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Customer Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">Name</p>
+                      <p className="text-sm text-gray-900 capitalize">
+                        {selectedOrder.user.firstName}
                       </p>
                     </div>
-                  ))}
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">Email</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedOrder.user.email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">Phone</p>
+                      <p className="text-sm text-gray-900">
+                        {selectedOrder.user.phone || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">
+                        Current Status
+                      </p>
+                      <div className="inline-flex items-center gap-2">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            selectedOrder.deliveryStatus === "DELIVERED"
+                              ? "bg-green-500"
+                              : selectedOrder.deliveryStatus === "CANCELLED"
+                              ? "bg-red-500"
+                              : "bg-blue-500"
+                          }`}
+                        />
+                        <span className="text-sm font-medium">
+                          {selectedOrder.deliveryStatus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="border-t pt-3">
-                <h4 className="font-semibold mb-1">Total Amount</h4>
-                <p className="text-lg font-bold">
-                  ₦{selectedOrder.totalAmount.toLocaleString()}
-                </p>
+                {/* ORDER TYPE & DELIVERY */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      Order Type
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {selectedOrder.deliveryType === "pickup" ? (
+                        <>
+                          <Store className="w-5 h-5 text-blue-600" />
+                          <span className="text-gray-900">Pickup at Store</span>
+                        </>
+                      ) : (
+                        <>
+                          <Truck className="w-5 h-5 text-green-600" />
+                          <span className="text-gray-900">Home Delivery</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedOrder.deliveryType === "delivery" &&
+                    selectedOrder.address && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">
+                          Delivery Address
+                        </h4>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm text-gray-900">
+                            {selectedOrder.address}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                </div>
+
+                {/* ORDER ITEMS */}
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">
+                    Order Items ({selectedOrder.items.length})
+                  </h4>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item: any) => (
+                      <div
+                        key={item.id}
+                        className="flex items-start justify-between bg-gray-50 rounded-lg p-3"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 text-sm capitalize">
+                            {item.product.name}
+                          </p>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-xs text-gray-500">
+                              Qty: {item.quantity}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ₦{item.unitPrice.toLocaleString()} each
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">
+                            ₦{(item.unitPrice * item.quantity).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* TOTAL AMOUNT */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-900 text-lg">
+                      Total Amount
+                    </span>
+                    <span className="font-bold text-gray-900 text-xl">
+                      ₦{selectedOrder.totalAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Order placed on{" "}
+                    {new Date(selectedOrder.createdAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="p-4 border-t flex justify-end">
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => setSelectedOrder(null)}
-              >
-                Close
-              </button>
+            {/* MODAL FOOTER */}
+            <div className="border-t p-4 lg:p-6 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium transition-colors"
+                  onClick={() => {
+                    // Add functionality to print or export if needed
+                    setSelectedOrder(null);
+                  }}
+                >
+                  Print Receipt
+                </button>
+                <button
+                  className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                  onClick={() => setSelectedOrder(null)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
