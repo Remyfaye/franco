@@ -384,7 +384,8 @@ function ProductsTab() {
     }
 
     try {
-      const response = await handleDelete(`admin/products?id=${id}`);
+      setIsEditing(true);
+      const response = await handleDelete(`admin/products/${id}`);
 
       if (!response.ok) {
         throw new Error("Failed to delete product");
@@ -395,6 +396,8 @@ function ProductsTab() {
     } catch (error) {
       console.error("Error deleting product:", error);
       alert("Error deleting product. Please try again.");
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -902,6 +905,7 @@ function ProductsTab() {
                         <button
                           onClick={() => handleProductDelete(item.id)}
                           className="flex items-center space-x-1 text-red-600 text-sm"
+                          disabled={isEditing}
                         >
                           <Trash2 size={16} />
                           <span>Delete</span>
