@@ -101,6 +101,9 @@ export function useAuth() {
 
       if (res.status === 200) {
         localStorage.setItem("pending_email", formData.email);
+        if (res.data.token) {
+          localStorage.setItem("auth-token", res.data.token);
+        }
 
         toast({
           title: "Verify Your Email",
