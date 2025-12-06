@@ -124,7 +124,7 @@ export default function CartPage() {
                       {item.product.description}
                     </p>
                     <p className="text-lg font-bold text-gray-900 mt-2">
-                      ₦{item.product.price}
+                      ₦{(item.product.price * item.quantity).toLocaleString()}
                     </p>
 
                     {/* Quantity Controls */}
@@ -168,13 +168,6 @@ export default function CartPage() {
                         Only {item.product.stock} left in stock
                       </p>
                     )}
-                  </div>
-
-                  {/* Item Total */}
-                  <div className="text-right">
-                    <p className="text-lg font-bold">
-                      ₦{(item.product.price * item.quantity).toLocaleString()}
-                    </p>
                   </div>
                 </div>
               </div>
