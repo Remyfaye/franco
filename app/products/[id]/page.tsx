@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Link from "next/link";
 import { useProducts } from "@/hooks/useProducts";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useCart } from "@/hooks/useCart";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const { categories, products, productsLoading } = useProducts();
-  const product = products?.find((p) => p.id === params.id);
+  let product = products?.find((p) => p.id === params.id);
+  const router = useRouter();
 
   const categoryIdOfProduct = product?.categoryId;
   const relatedProducts = products.filter(
@@ -19,14 +23,34 @@ export default function ProductDetailPage() {
   );
   console.log("a product", product);
   console.log("categoryIdOfProduct", relatedProducts);
+  const { user } = useAuth();
+  const { loading, addToCart } = useCart();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  const handleAddToCart = () => {
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+  const handleAddToCart = async (product: Product | undefined) => {
+    if (!user) {
+      toast({
+        title: " Login Required",
+        description: `Please login to add to cart`,
+        duration: 2000,
+      });
+
+      router.push("/login");
+
+      return;
+    }
+    const success = await addToCart(product);
+    if (success) {
+      toast({
+        title: "Added to Cart!",
+        description: `${product?.name} has been added successfully.`,
+        duration: 2000,
+      });
+      setAddedToCart(true);
+    }
   };
 
   return (
@@ -144,8 +168,8 @@ export default function ProductDetailPage() {
                   </div>
 
                   <Button
-                    onClick={handleAddToCart}
-                    disabled={!product?.stock}
+                    onClick={() => handleAddToCart(product)}
+                    disabled={loading}
                     className="w-full bg-black text-white hover:bg-gray-800 py-3 text-lg"
                   >
                     {addedToCart ? "✓ Added to Cart" : "Add to Cart"}

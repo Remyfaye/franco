@@ -9,6 +9,7 @@ import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useToast } from "@/components/ui/use-toast";
 import AddToCart from "@/components/ui/addToCart-button";
+import { useRouter } from "next/navigation";
 
 // Mock product data - would come from backend
 const PRODUCTS = [
@@ -64,6 +65,7 @@ const PRODUCTS = [
 
 export default function ProductsPage() {
   const { categories, products, productsLoading } = useProducts();
+  const router = useRouter();
 
   const CATEGORIES = [{ name: "All", id: "1" }, ...categories];
   const [selectedCategory, setSelectedCategory] = useState("1");
@@ -130,6 +132,7 @@ export default function ProductsPage() {
                     src={product.imageUrls[0] || "/placeholder.svg"}
                     alt={product.name}
                     className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    onClick={() => router.push(`/products/${product.id}`)}
                   />
                   <AddToCart product={product} />
                 </div>
