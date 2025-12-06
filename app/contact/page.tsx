@@ -54,17 +54,17 @@ export default function ContactPage() {
 
               <div>
                 <h3 className="text-xl font-bold mb-2">Phone</h3>
-                <p className="text-gray-700">+1 (555) 123-4567</p>
+                <p className="text-gray-700">+234 903 659 6893</p>
               </div>
 
               <div>
                 <h3 className="text-xl font-bold mb-2">Address</h3>
                 <p className="text-gray-700">
-                  123 Beauty Lane
+                  129 Nnamdi Azikiwe street ,
                   <br />
-                  New York, NY 10001
+                  Idumota Lagos Island
                   <br />
-                  United States
+                  Lagos Nigeria
                 </p>
               </div>
 
