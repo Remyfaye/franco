@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Franco Onlie Store",
-  description: "Franco Onlie Store",
+  title: "Franco Online Store",
+  description: "Franco Online Store",
   generator: "Fay",
   icons: {
     icon: [
