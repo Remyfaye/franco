@@ -49,7 +49,7 @@ export default function ContactPage() {
             <div className="space-y-8">
               <div>
                 <h3 className="text-xl font-bold mb-2">Email</h3>
-                <p className="text-gray-700">support@franco.com</p>
+                <p className="text-gray-700">francoonlinestore.ng@gmail.com</p>
               </div>
 
               <div>
