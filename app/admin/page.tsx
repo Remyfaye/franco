@@ -968,7 +968,7 @@ function ProductsTab() {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleProductDelete(item.id)}
                           className="text-red-600 hover:underline"
                         >
                           Delete
