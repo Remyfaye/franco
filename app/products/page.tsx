@@ -138,9 +138,7 @@ export default function ProductsPage() {
                 </div>
                 <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
                 <div className="flex items-center justify-between">
-                  <p className="text-2xl font-bold">
-                    ₦{(product.price / 100).toFixed(2)}
-                  </p>
+                  <p className="text-2xl font-bold">₦{product.price}</p>
                   <div className="flex items-center gap-1">
                     <span className="text-yellow-500">★</span>
                   </div>
